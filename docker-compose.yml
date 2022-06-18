@@ -20,7 +20,7 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes:
       - ./deploy/db_data/:/var/lib/mysql
-#      - ./database/schema.up.sql:/docker-entrypoint-initdb.d/schema.up.sql
+      - ./database/schema:/docker-entrypoint-initdb.d
     ports:
       - "3306:3306"
     networks:
