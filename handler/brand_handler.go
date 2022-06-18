@@ -24,19 +24,17 @@ func DecodeBrand(r io.Reader) (entity.Brand, error) {
 }
 
 func (h *BrandHandler) Create(w http.ResponseWriter, r *http.Request) (int, error) {
+	response := NewResponse()
 	if r.Method != http.MethodPost {
-		return WriteErrorMethodNotAllowed(w, errors.New(ErrMethodNotAllowed))
+		return response.ErrorMethodNotAllowed(w)
 	}
 
-	brand, err := DecodeBrand(r.Body)
-	if err != nil {
-		return WriteErrorBadRequest(w, err)
+	var brand entity.Brand
+	brand, response.CustomError.Err = DecodeBrand(r.Body)
+	if response.CustomError.Err != nil {
+		return response.ErrorBadRequest(w, nil)
 	}
 
-	err = h.Service.Create(r.Context(), brand)
-	if err != nil {// TODO check if error is bad request/internal server error
-		return WriteInternalServerError(w, err)
-	}
-
-	return WriteCreated(w, brand)
+	response.CustomError = h.Service.Create(r.Context(), brand)
+	return response.Write(w)
 }

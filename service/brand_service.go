@@ -8,7 +8,7 @@ import (
 )
 
 type BrandServiceInterface interface {
-	Create(context.Context, entity.Brand) error
+	Create(context.Context, entity.Brand) entity.CustomError
 }
 
 type BrandService struct {
@@ -21,8 +21,16 @@ func NewBrandService(db *sql.DB) *BrandService {
 	}
 }
 
-func (b *BrandService) Create(ctx context.Context, brand entity.Brand) error {
+func (b *BrandService) Create(ctx context.Context, brand entity.Brand) (err entity.CustomError) {
+	err = entity.NewCustomError()
+	if err.Err = brand.Validate(); err.Err != nil {
+		err.ErrorBadRequest(nil)
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
-	return b.Repository.Create(ctx, brand)
+
+	err = b.Repository.Create(ctx, brand)
+	return
 }

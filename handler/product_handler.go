@@ -25,42 +25,44 @@ func DecodeProduct(r io.Reader) (entity.Product, error) {
 }
 
 func (h *ProductHandler) Product(w http.ResponseWriter, r *http.Request) (int, error) {
+	response := NewResponse()
 	switch r.Method {
 	case http.MethodPost:
 		return h.Create(w,r)
 	case http.MethodGet:
 		return h.Get(w,r)
 	default:
-		return WriteErrorMethodNotAllowed(w, errors.New(ErrMethodNotAllowed))
+		return response.ErrorMethodNotAllowed(w)
 	}
 }
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) (int, error) {
-	Product, err := DecodeProduct(r.Body)
-	if err != nil {
-		return WriteErrorBadRequest(w, err)
+	response := NewResponse()
+	var product entity.Product
+
+	product, response.CustomError.Err = DecodeProduct(r.Body)
+	if response.CustomError.Err != nil {
+		return response.ErrorBadRequest(w, errors.New("request body are invalid"))
 	}
-	err = h.Service.Create(r.Context(), Product)
-	if err != nil {// TODO check if error is bad request/internal server error
-		return WriteInternalServerError(w, err)
-	}
-	return WriteCreated(w, Product)
+
+	response.CustomError = h.Service.Create(r.Context(), product)
+	return response.Write(w)
 }
 
 func (h *ProductHandler) Get(w http.ResponseWriter, r *http.Request) (int, error) {
+	response := NewResponse()
+	var id int64
+
 	idParam := r.URL.Query().Get("id")
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil {
-		return WriteErrorBadRequest(w, err)
+	id, response.CustomError.Err = strconv.ParseInt(idParam, 10, 64)
+	if response.CustomError.Err != nil {
+		return response.ErrorBadRequest(w, errors.New("id is not valid"))
 	}
 
-	result, err := h.Service.Get(r.Context(), id)
-	if err != nil {// TODO check if error is bad request/internal server error
-		if err.Error() == "sql: no rows in result set" {
-			return WriteErrorNotFound(w, errors.New("record is not found"))
-		}
-		return WriteInternalServerError(w, err)
+	response.Result, response.CustomError = h.Service.Get(r.Context(), id)
+	if response.Result == nil {
+		return response.ErrorRecordNotFound(w, nil)
 	}
 
-	return WriteSuccess(w, result)
+	return response.Write(w)
 }

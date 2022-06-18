@@ -25,45 +25,42 @@ func DecodeTransactionOrder(r io.Reader) (entity.TransactionOrder, error) {
 }
 
 func (h *TransactionHandler) Transaction(w http.ResponseWriter, r *http.Request) (int, error) {
+	response := NewResponse()
 	switch r.Method {
 	case http.MethodPost:
 		return h.Create(w,r)
 	case http.MethodGet:
 		return h.Get(w,r)
 	default:
-		return WriteErrorMethodNotAllowed(w, errors.New(ErrMethodNotAllowed))
+		return response.ErrorMethodNotAllowed(w)
 	}
 }
 
 func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) (int, error) {
-	transactionOrder, err := DecodeTransactionOrder(r.Body)
-	if err != nil || len(transactionOrder.Carts) < 1 {
-		err = errors.New("invalid body request")
-		return WriteErrorBadRequest(w, err)
+	response := NewResponse()
+
+	var transactionOrder entity.TransactionOrder
+	transactionOrder, response.CustomError.Err = DecodeTransactionOrder(r.Body)
+	if response.CustomError.Err != nil || len(transactionOrder.Carts) < 1 {
+		return response.ErrorBadRequest(w, errors.New("invalid body request"))
 	}
 
-	err = h.Service.Create(r.Context(), transactionOrder)
-	if err != nil {// TODO check if error is bad request/internal server error
-		return WriteInternalServerError(w, err)
-	}
+	response.CustomError = h.Service.Create(r.Context(), transactionOrder)
 
-	return WriteCreated(w, "ok")
+	return response.Write(w)
 }
 
 func (h *TransactionHandler) Get(w http.ResponseWriter, r *http.Request) (int, error) {
+	response := NewResponse()
+	var id int64
+
 	idParam := r.URL.Query().Get("id")
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil {
-		return WriteErrorBadRequest(w, err)
+	id, response.CustomError.Err = strconv.ParseInt(idParam, 10, 64)
+	if response.CustomError.Err != nil {
+		return response.ErrorBadRequest(w, errors.New("id is invalid"))
 	}
 
-	result, err := h.Service.Get(r.Context(), id)
-	if err != nil {// TODO check if error is bad request/internal server error
-		return WriteInternalServerError(w, err)
-	}
-	if len(result) < 1 {
-		return WriteErrorNotFound(w, errors.New("records are not found"))
-	}
+	response.Result, response.CustomError = h.Service.Get(r.Context(), id)
 
-	return WriteSuccess(w, result)
+	return response.Write(w)
 }

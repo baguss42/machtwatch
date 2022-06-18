@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `brands`;
 CREATE TABLE `brands` (
     `id` bigint PRIMARY KEY AUTO_INCREMENT,
     `name` varchar(255) unique,
@@ -11,6 +12,7 @@ CREATE TABLE `brands` (
 CREATE INDEX brands_index_level ON `brands` (level);
 CREATE INDEX brands_index_name_is_active ON `brands` (level, is_active);
 
+DROP TABLE IF EXISTS `products`;
 CREATE TABLE `products` (
     `id` bigint PRIMARY KEY AUTO_INCREMENT,
     `brand_id` bigint,
@@ -26,6 +28,7 @@ CREATE TABLE `products` (
 ALTER TABLE `products` ADD FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`);
 CREATE INDEX products_index_title_is_active ON `products` (title, is_active);
 
+DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE `transactions` (
     `id` bigint PRIMARY KEY AUTO_INCREMENT,
     `state` varchar(255),
@@ -34,6 +37,7 @@ CREATE TABLE `transactions` (
 );
 CREATE INDEX brands_index_state ON `transactions` (state);
 
+DROP TABLE IF EXISTS `transaction_details`;
 CREATE TABLE `transaction_details` (
        `id` bigint PRIMARY KEY AUTO_INCREMENT,
        `transaction_id` bigint,

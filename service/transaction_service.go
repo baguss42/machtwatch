@@ -8,8 +8,8 @@ import (
 )
 
 type TransactionServiceInterface interface {
-	Create(context.Context, entity.TransactionOrder) error
-	Get(ctx context.Context, int642 int64) ([]entity.TransactionDetail, error)
+	Create(context.Context, entity.TransactionOrder) entity.CustomError
+	Get(ctx context.Context, int642 int64) ([]entity.TransactionDetail, entity.CustomError)
 }
 
 type TransactionService struct {
@@ -26,16 +26,21 @@ func NewTransactionService(db *sql.DB) *TransactionService {
 	}
 }
 
-func (t *TransactionService) Create(ctx context.Context, transactionOrder entity.TransactionOrder) error {
+func (t *TransactionService) Create(ctx context.Context, transactionOrder entity.TransactionOrder) entity.CustomError {
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 
 	return t.TrxRepository.Create(ctx, transactionOrder)
 }
 
-func (t *TransactionService) Get(ctx context.Context, transactionID int64) ([]entity.TransactionDetail, error) {
+func (t *TransactionService) Get(ctx context.Context, transactionID int64) ([]entity.TransactionDetail, entity.CustomError) {
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 
-	return t.TrxDetailRepository.Get(ctx, transactionID)
+	result, err := t.TrxDetailRepository.Get(ctx, transactionID)
+	if len(result) < 1 {
+		err.ErrorNotFound()
+	}
+
+	return result, err
 }

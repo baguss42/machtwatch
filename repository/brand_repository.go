@@ -8,7 +8,7 @@ import (
 )
 
 type BrandRepositoryInterface interface {
-	Create(ctx context.Context, brand entity.Brand) error
+	Create(ctx context.Context, brand entity.Brand) entity.CustomError
 }
 
 type BrandRepository struct {
@@ -21,10 +21,11 @@ func NewBrandRepository(db *sql.DB) *BrandRepository {
 	}
 }
 
-func (b *BrandRepository) Create(ctx context.Context, brand entity.Brand) error {
-	query := fmt.Sprintf("INSERT INTO Products(name, description, logo, level) VALUES ('%s', '%s', '%s', '%s')", brand.Name, brand.Description, brand.Logo, brand.Level)
+func (b *BrandRepository) Create(ctx context.Context, brand entity.Brand) (err entity.CustomError) {
+	query := fmt.Sprintf("INSERT INTO brands(name, description, logo, level) VALUES ('%s', '%s', '%s', '%s')", brand.Name, brand.Description, brand.Logo, brand.Level)
 
-	_, err := b.DB.ExecContext(ctx, query)
+	_, err.Err = b.DB.ExecContext(ctx, query)
+	err.BuildSQLError("create")
 
-	return err
+	return
 }

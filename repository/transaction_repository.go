@@ -9,7 +9,7 @@ import (
 )
 
 type TransactionRepositoryInterface interface {
-	Create(context.Context, entity.TransactionOrder) error
+	Create(context.Context, entity.TransactionOrder) entity.CustomError
 }
 
 type TransactionRepository struct {
@@ -26,46 +26,50 @@ func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 	}
 }
 
-func (t *TransactionRepository) Create(ctx context.Context, transactionOrder entity.TransactionOrder) error {
+func (t *TransactionRepository) Create(ctx context.Context, transactionOrder entity.TransactionOrder) (err entity.CustomError) {
+	err = entity.NewCustomError()
 	var wg sync.WaitGroup
 	var mu sync.Mutex
+	var result sql.Result
+	var tx *sql.Tx
+	var trxID int64
 
 	cartLength := len(transactionOrder.Carts)
+	errs := make(chan entity.CustomError, cartLength*4)
 	wg.Add(cartLength)
-	errs := make(chan error, cartLength*4)
 
-	tx, err := t.DB.Begin()
-	if err != nil {
-		return err
+	tx, err.Err = t.DB.Begin()
+	if err.Err != nil {
+		return
 	}
 
 	query := "INSERT INTO transactions(state) VALUES ('pending')"
-	result, err := tx.ExecContext(ctx, query)
-	if err != nil {
-		return err
+	result, err.Err = tx.ExecContext(ctx, query)
+	if err.Err != nil {
+		return
 	}
 
-	trxID, err := result.LastInsertId()
-	if err != nil {
-		return err
+	trxID, err.Err = result.LastInsertId()
+	if err.Err != nil {
+		return
 	}
 
 	for _, v := range transactionOrder.Carts {
 		go func(c entity.Carts, tcx *sql.Tx) {
 			mu.Lock()
-			var errC error
+			var errC entity.CustomError
 			defer wg.Done()
 			defer mu.Unlock()
 
 			// get product details
 			product, errC := t.ProductRepository.Get(ctx, c.ProductID)
-			if errC != nil {
+			if errC.Err != nil {
 				errs <- errC
 				return
 			}
 
 			if product.Stock < c.Quantity {
-				errC = errors.New("quantity is greater than stock")
+				errC.ErrorUnprocessableEntity(errors.New("product stock is less than quantity"))
 				errs <- errC
 			}
 
@@ -79,7 +83,7 @@ func (t *TransactionRepository) Create(ctx context.Context, transactionOrder ent
 				FinalPrice: (product.Price - product.PriceReduction) * int64(c.Quantity),
 			}
 			errC = t.TransactionDetailRepository.Create(ctx, tcx, transactionDetails)
-			if errC != nil {
+			if errC.Err != nil {
 				errs <- errC
 				return
 			}
@@ -96,16 +100,20 @@ func (t *TransactionRepository) Create(ctx context.Context, transactionOrder ent
 	close(errs)
 
 	err = <-errs
-	if err == nil {
-		if errCommit := tx.Commit(); errCommit != nil {
-			return errCommit
-		}
-	} else {
+	if err.Err != nil {
 		if errRollback := tx.Rollback(); errRollback != nil {
-			return errRollback
+			err.Err = errRollback
+			return
 		}
-		return err
+		return
 	}
 
-	return nil
+	if errCommit := tx.Commit(); errCommit != nil {
+		err.Err = errCommit
+		return
+	}
+
+	err.BuildSQLError("create")
+
+	return
 }

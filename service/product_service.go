@@ -8,8 +8,8 @@ import (
 )
 
 type ProductServiceInterface interface {
-	Create(context.Context, entity.Product) error
-	Get(context.Context, int64) (entity.Product, error)
+	Create(context.Context, entity.Product) entity.CustomError
+	Get(context.Context, int64) (entity.Product, entity.CustomError)
 }
 
 type ProductService struct {
@@ -22,13 +22,21 @@ func NewProductService(db *sql.DB) *ProductService {
 	}
 }
 
-func (p *ProductService) Create(ctx context.Context, Product entity.Product) error {
+func (p *ProductService) Create(ctx context.Context, product entity.Product) (err entity.CustomError) {
+	err = entity.NewCustomError()
+	if err.Err = product.Validate(); err.Err != nil {
+		err.ErrorBadRequest(nil)
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
-	return p.Repository.Create(ctx, Product)
+
+	return p.Repository.Create(ctx, product)
 }
 
-func (p *ProductService) Get(ctx context.Context, id int64) (entity.Product, error) {
+func (p *ProductService) Get(ctx context.Context, id int64) (product entity.Product, err entity.CustomError) {
+	err = entity.NewCustomError()
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 	return p.Repository.Get(ctx, id)
