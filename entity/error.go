@@ -8,14 +8,12 @@ import (
 )
 
 const (
-	errorRecordNotExist = "record not exist"
-	errorUnexpected     = "unexpected error"
-	errorUnauthorized   = "unauthorized error"
-	errorForbidden      = "forbidden error"
+	ErrorRecordNotExist = "record not exist"
 )
+
 var (
 	ErrFieldRequired = "field %s is required"
-	ErrFieldInvalid = "field %s is invalid"
+	ErrFieldInvalid  = "field %s is invalid"
 )
 
 type CustomError struct {
@@ -32,7 +30,7 @@ func NewCustomError() CustomError {
 
 func (c *CustomError) ErrorNotFound() {
 	c.HttpCode = http.StatusNotFound
-	c.Err = errors.New(errorRecordNotExist)
+	c.Err = errors.New(ErrorRecordNotExist)
 }
 
 func (c *CustomError) ErrorUnexpected(err error) {
@@ -66,13 +64,13 @@ func (c *CustomError) ErrorUnprocessableEntity(err error) {
 func (c *CustomError) BuildSQLError(method string) {
 	httpCode := map[string]int{
 		"create": 201,
-		"get": 200,
+		"get":    200,
 		"update": 200,
 	}
 	if c.Err != nil {
 		if mysqlError, ok := c.Err.(*mysql.MySQLError); ok {
 			switch {
-			case mysqlError.Number == 1062:  // duplicate record
+			case mysqlError.Number == 1062: // duplicate record
 				c.ErrorRecordAlreadyExist(errors.New("record already exist"))
 			case mysqlError.Number == 1452: //  foreign key constraint fails
 				c.ErrorUnprocessableEntity(errors.New("product brand is not found"))

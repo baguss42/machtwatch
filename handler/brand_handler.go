@@ -36,5 +36,8 @@ func (h *BrandHandler) Create(w http.ResponseWriter, r *http.Request) (int, erro
 	}
 
 	response.CustomError = h.Service.Create(r.Context(), brand)
+	if response.CustomError.Err == nil {
+		response.CustomError.HttpCode = http.StatusCreated
+	}
 	return response.Write(w)
 }

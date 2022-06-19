@@ -24,20 +24,18 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 }
 
 func (p *ProductRepository) Create(ctx context.Context, product entity.Product) (err entity.CustomError) {
-	query := fmt.Sprintf("INSERT INTO products(brand_id, title, description, price, price_reduction, stock) " +
-		"VALUES (%v, '%s', '%s', %v, %v, %v)",
-		product.BrandID, product.Title, product.Description, product.Price, product.PriceReduction, product.Stock)
+	query := "INSERT INTO products(brand_id, title, description, price, price_reduction, stock) VALUES (?, ?, ?, ?, ?, ?)"
 
-	_, err.Err = p.DB.ExecContext(ctx, query)
+	_, err.Err = p.DB.ExecContext(ctx, query, product.BrandID, product.Title, product.Description, product.Price, product.PriceReduction, product.Stock)
 	err.BuildSQLError("create")
 
 	return err
 }
 
 func (p *ProductRepository) Get(ctx context.Context, id int64) (result entity.Product, err entity.CustomError) {
-	query := fmt.Sprintf("SELECT * FROM products WHERE id = %v", id)
+	query := "SELECT * FROM products WHERE id = ?"
 
-	err.Err = p.DB.QueryRowContext(ctx, query).Scan(&result.ID, &result.BrandID, &result.Title,
+	err.Err = p.DB.QueryRowContext(ctx, query, id).Scan(&result.ID, &result.BrandID, &result.Title,
 		&result.Description, &result.Price, &result.PriceReduction, &result.Stock,
 		&result.IsActive, &result.CreatedAt)
 	err.BuildSQLError("get")

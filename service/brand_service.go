@@ -22,7 +22,6 @@ func NewBrandService(db *sql.DB) *BrandService {
 }
 
 func (b *BrandService) Create(ctx context.Context, brand entity.Brand) (err entity.CustomError) {
-	err = entity.NewCustomError()
 	if err.Err = brand.Validate(); err.Err != nil {
 		err.ErrorBadRequest(nil)
 		return err

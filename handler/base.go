@@ -20,11 +20,10 @@ func NewPayload(data interface{}, httpCode int) *ResponsePayload {
 	return &ResponsePayload{
 		Data: data,
 		Meta: map[string]int{
-			"meta": httpCode,
+			"status": httpCode,
 		},
 	}
 }
-
 
 type CustomResponse struct {
 	Result      interface{}
@@ -54,7 +53,7 @@ func (c *CustomResponse) Write(w http.ResponseWriter) (int, error) {
 
 func (c *CustomResponse) ErrorMethodNotAllowed(w http.ResponseWriter) (int, error) {
 	c.CustomError.HttpCode = http.StatusMethodNotAllowed
-	c.CustomError.Err = errors.New("method not allowed")
+	c.CustomError.Err = errors.New(ErrMethodNotAllowed)
 	return c.Write(w)
 }
 
@@ -81,41 +80,3 @@ func (c *CustomResponse) ErrorInternalServerError(w http.ResponseWriter, err err
 	}
 	return c.Write(w)
 }
-
-//func (c *CustomResponse) WriteSuccess(w http.ResponseWriter) (int, error) {
-//	c.Write()
-//	return http.StatusOK, nil
-//}
-//
-//func WriteCreated(w http.ResponseWriter, payload interface{}) (int, error) {
-//	resp := NewResponse(payload, http.StatusCreated)
-//	w.Header().Set("Content-Type", "application/json")
-//	w.WriteHeader(http.StatusCreated)
-//	json.NewEncoder(w).Encode(resp)
-//	return http.StatusCreated, nil
-//}
-//
-//
-//func WriteInternalServerError(w http.ResponseWriter, err error) (int, error) {
-//	resp := NewResponse(err.Error(), http.StatusInternalServerError)
-//	w.Header().Set("Content-Type", "application/json")
-//	w.WriteHeader(http.StatusInternalServerError)
-//	json.NewEncoder(w).Encode(resp)
-//	return http.StatusInternalServerError, err
-//}
-//
-//func WriteErrorBadRequest(w http.ResponseWriter, err error) (int, error) {
-//	resp := NewResponse(err.Error(), http.StatusBadRequest)
-//	w.Header().Set("Content-Type", "application/json")
-//	w.WriteHeader(http.StatusBadRequest)
-//	json.NewEncoder(w).Encode(resp)
-//	return http.StatusBadRequest, err
-//}
-//
-//func WriteErrorNotFound(w http.ResponseWriter, err error) (int, error) {
-//	resp := NewResponse(err.Error(), http.StatusNotFound)
-//	w.Header().Set("Content-Type", "application/json")
-//	w.WriteHeader(http.StatusNotFound)
-//	json.NewEncoder(w).Encode(resp)
-//	return http.StatusNotFound, err
-//}

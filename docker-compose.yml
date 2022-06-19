@@ -1,16 +1,18 @@
 version: "3"
 services:
-#  app:
-#    container_name: machtwatch-app
-#    build: .
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - db
-#    networks:
-#      - machtwatch-network
+  app:
+    container_name: machtwatch-app
+    build: .
+#    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - machtwatch-network
 
   db:
+    container_name: machtwatch-db
     image: mysql:latest
     restart: always
     environment:

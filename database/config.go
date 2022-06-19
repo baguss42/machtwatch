@@ -29,6 +29,5 @@ func Load() *sql.DB {
 		fmt.Println("database connected ...")
 	}
 
-
 	return db
 }

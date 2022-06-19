@@ -7,6 +7,7 @@ import (
 )
 
 const defaultDatabaseTimeout = "5s"
+
 var dbDuration *time.Duration
 var one sync.Once
 

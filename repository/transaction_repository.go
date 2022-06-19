@@ -13,15 +13,15 @@ type TransactionRepositoryInterface interface {
 }
 
 type TransactionRepository struct {
-	DB *sql.DB
-	ProductRepository ProductRepositoryInterface
+	DB                          *sql.DB
+	ProductRepository           ProductRepositoryInterface
 	TransactionDetailRepository TransactionDetailRepositoryInterface
 }
 
 func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 	return &TransactionRepository{
-		DB: db,
-		ProductRepository: NewProductRepository(db),
+		DB:                          db,
+		ProductRepository:           NewProductRepository(db),
 		TransactionDetailRepository: NewTransactionDetailRepository(db),
 	}
 }
@@ -71,16 +71,17 @@ func (t *TransactionRepository) Create(ctx context.Context, transactionOrder ent
 			if product.Stock < c.Quantity {
 				errC.ErrorUnprocessableEntity(errors.New("product stock is less than quantity"))
 				errs <- errC
+				return
 			}
 
 			// save to transaction details
 			transactionDetails := entity.TransactionDetail{
-				TransactionID: trxID,
-				ProductID: product.ID,
-				Price: product.Price,
+				TransactionID:  trxID,
+				ProductID:      product.ID,
+				Price:          product.Price,
 				PriceReduction: product.PriceReduction,
-				Quantity: c.Quantity,
-				FinalPrice: (product.Price - product.PriceReduction) * int64(c.Quantity),
+				Quantity:       c.Quantity,
+				FinalPrice:     (product.Price - product.PriceReduction) * int64(c.Quantity),
 			}
 			errC = t.TransactionDetailRepository.Create(ctx, tcx, transactionDetails)
 			if errC.Err != nil {
@@ -91,7 +92,10 @@ func (t *TransactionRepository) Create(ctx context.Context, transactionOrder ent
 			// update product reduce stock
 			currentStock := product.Stock - c.Quantity
 			errC = t.ProductRepository.UpdateStock(ctx, tcx, product.ID, currentStock)
-			errs <- errC
+			if errC.Err != nil {
+				errs <- errC
+				return
+			}
 
 		}(v, tx)
 	}

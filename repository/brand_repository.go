@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/baguss42/machtwatch/entity"
 )
 
@@ -22,9 +21,9 @@ func NewBrandRepository(db *sql.DB) *BrandRepository {
 }
 
 func (b *BrandRepository) Create(ctx context.Context, brand entity.Brand) (err entity.CustomError) {
-	query := fmt.Sprintf("INSERT INTO brands(name, description, logo, level) VALUES ('%s', '%s', '%s', '%s')", brand.Name, brand.Description, brand.Logo, brand.Level)
+	query := "INSERT INTO brands(name, description, logo, level) VALUES (?, ?, ?, ?)"
 
-	_, err.Err = b.DB.ExecContext(ctx, query)
+	_, err.Err = b.DB.ExecContext(ctx, query, brand.Name, brand.Description, brand.Logo, brand.Level)
 	err.BuildSQLError("create")
 
 	return

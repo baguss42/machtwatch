@@ -6,22 +6,21 @@ import (
 	"time"
 )
 
-
 type Brand struct {
-	ID int64 `json:"id"`
-	Name string `json:"name"`
-	Description string `json:"description"`
-	Logo string `json:"logo"`
-	Level string `json:"level"`
-	IsActive bool `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          int64     `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Logo        string    `json:"logo"`
+	Level       string    `json:"level"`
+	IsActive    bool      `json:"is_active"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func (b *Brand) Validate() error {
 	EnumBrandLevel := map[string]bool{
-		"small": true,
+		"small":  true,
 		"medium": true,
-		"large": true,
+		"large":  true,
 	}
 	if b.Name == "" {
 		return errors.New(fmt.Sprintf(ErrFieldRequired, "name"))
