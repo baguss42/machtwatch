@@ -30,6 +30,12 @@ func (b *BrandService) Create(ctx context.Context, brand entity.Brand) (err enti
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 
-	err = b.Repository.Create(ctx, brand)
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		err = b.Repository.Create(ctx, brand)
+	}
+
 	return
 }

@@ -21,10 +21,11 @@ func NewBrandRepository(db *sql.DB) *BrandRepository {
 }
 
 func (b *BrandRepository) Create(ctx context.Context, brand entity.Brand) (err entity.CustomError) {
-	query := "INSERT INTO brands(name, description, logo, level) VALUES (?, ?, ?, ?)"
+	err.ErrorTimeout()
+	defer err.BuildSQLError("create")
 
+	query := "INSERT INTO brands(name, description, logo, level) VALUES (?, ?, ?, ?)"
 	_, err.Err = b.DB.ExecContext(ctx, query, brand.Name, brand.Description, brand.Logo, brand.Level)
-	err.BuildSQLError("create")
 
 	return
 }

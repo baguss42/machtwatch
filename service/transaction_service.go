@@ -26,18 +26,31 @@ func NewTransactionService(db *sql.DB) *TransactionService {
 	}
 }
 
-func (t *TransactionService) Create(ctx context.Context, transactionOrder entity.TransactionOrder) entity.CustomError {
+func (t *TransactionService) Create(ctx context.Context, transactionOrder entity.TransactionOrder) (err entity.CustomError) {
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 
-	return t.TrxRepository.Create(ctx, transactionOrder)
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		err = t.TrxRepository.Create(ctx, transactionOrder)
+	}
+
+	return
 }
 
-func (t *TransactionService) Get(ctx context.Context, transactionID int64) ([]entity.TransactionDetail, entity.CustomError) {
+func (t *TransactionService) Get(ctx context.Context, transactionID int64) (result []entity.TransactionDetail, err entity.CustomError) {
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 
-	result, err := t.TrxDetailRepository.Get(ctx, transactionID)
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		result, err = t.TrxDetailRepository.Get(ctx, transactionID)
+	}
+
 	if len(result) < 1 {
 		err.ErrorNotFound()
 	}

@@ -9,6 +9,7 @@ import (
 
 const (
 	ErrorRecordNotExist = "record not exist"
+	ErrorTimeout = "timeout error"
 )
 
 var (
@@ -59,6 +60,11 @@ func (c *CustomError) ErrorUnprocessableEntity(err error) {
 	if err != nil {
 		c.Err = err
 	}
+}
+
+func (c *CustomError) ErrorTimeout() {
+	c.HttpCode = http.StatusRequestTimeout
+	c.Err = errors.New(ErrorTimeout)
 }
 
 func (c *CustomError) BuildSQLError(method string) {

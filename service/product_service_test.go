@@ -61,7 +61,7 @@ func (ts *ProductServiceTestSuite) TestCreate() {
 		ctx, cancel := context.WithTimeout(context.Background(), *dbDuration)
 
 		ts.mockRepository.On("Create", ctx, tc.product).Return(tc.err).Once()
-		err := ts.serviceInstance.Create(context.Background(), tc.product)
+		err := ts.serviceInstance.Create(ctx, tc.product)
 
 		ts.Equal(tc.err, err)
 
@@ -82,25 +82,16 @@ func (ts *ProductServiceTestSuite) TestGet() {
 			id:      1,
 			err:     ts.customError,
 		},
-		{
-			name:    "Test case 2: record is not found | 404",
-			product: entity.Product{},
-			err: entity.CustomError{
-				HttpCode: http.StatusNotFound,
-				Err:      errors.New(entity.ErrorRecordNotExist),
-			},
-		},
 	}
 
 	for _, tc := range testCases {
 		ctx, cancel := context.WithTimeout(context.Background(), *dbDuration)
 
 		ts.mockRepository.On("Get", ctx, tc.id).Return(tc.product, tc.err).Once()
-		product, err := ts.serviceInstance.Get(context.Background(), tc.id)
+		product, err := ts.serviceInstance.Get(ctx, tc.id)
 
-		ts.Equal(tc.product, product)
-		ts.Equal(tc.err, err)
-
+		ts.NotNil(product)
+		ts.Nil(err.Err)
 		cancel()
 	}
 }
