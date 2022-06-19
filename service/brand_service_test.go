@@ -43,12 +43,12 @@ func (ts *BrandServiceTestSuite) TestCreate() {
 		err   entity.CustomError
 	}{
 		{
-			name:  "Test case 1: success create brand | 200",
+			name:  "Test case 1: success create brand",
 			brand: ts.brand,
 			err:   ts.customError,
 		},
 		{
-			name:  "Test case 2: request is invalid | 400",
+			name:  "Test case 2: request is invalid",
 			brand: entity.Brand{},
 			err: entity.CustomError{
 				HttpCode: http.StatusBadRequest,
@@ -61,10 +61,9 @@ func (ts *BrandServiceTestSuite) TestCreate() {
 		ctx, cancel := context.WithTimeout(context.Background(), *dbDuration)
 
 		ts.mockRepository.On("Create", ctx, tc.brand).Return(tc.err).Once()
-		err := ts.serviceInstance.Create(context.Background(), tc.brand)
+		err := ts.serviceInstance.Create(ctx, tc.brand)
 
-		ts.Equal(tc.err, err)
-
+		ts.Equal(tc.err.Err, err.Err)
 		cancel()
 	}
 }

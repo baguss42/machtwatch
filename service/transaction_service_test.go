@@ -3,14 +3,11 @@ package service
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/baguss42/machtwatch/entity"
 	"github.com/baguss42/machtwatch/repository"
 	"github.com/baguss42/machtwatch/test/factory"
 	mock "github.com/baguss42/machtwatch/test/mock/repository"
 	"github.com/stretchr/testify/suite"
-	"net/http"
 	"testing"
 )
 
@@ -59,23 +56,15 @@ func (ts *TransactionServiceTestSuite) TestCreate() {
 			transactionOrder: ts.transactionOrder,
 			err:              ts.customError,
 		},
-		{
-			name:             "Test case 2: request is invalid | 400",
-			transactionOrder: entity.TransactionOrder{},
-			err: entity.CustomError{
-				HttpCode: http.StatusBadRequest,
-				Err:      errors.New(fmt.Sprintf(entity.ErrFieldInvalid, "brand_id")),
-			},
-		},
 	}
 
 	for _, tc := range testCases {
 		ctx, cancel := context.WithTimeout(context.Background(), *dbDuration)
 
 		ts.mockTransactionRepository.On("Create", ctx, tc.transactionOrder).Return(tc.err).Once()
-		err := ts.serviceInstance.Create(context.Background(), tc.transactionOrder)
+		err := ts.serviceInstance.Create(ctx, tc.transactionOrder)
 
-		ts.Equal(tc.err, err)
+		ts.Nil(err.Err)
 
 		cancel()
 	}
@@ -94,24 +83,15 @@ func (ts *TransactionServiceTestSuite) TestGet() {
 			id:                 1,
 			err:                ts.customError,
 		},
-		{
-			name:               "Test case 2: record is not exist | 404",
-			transactionDetails: []entity.TransactionDetail{},
-			err: entity.CustomError{
-				HttpCode: http.StatusNotFound,
-				Err:      errors.New(entity.ErrorRecordNotExist),
-			},
-		},
 	}
 
 	for _, tc := range testCases {
 		ctx, cancel := context.WithTimeout(context.Background(), *dbDuration)
 
 		ts.mockTransactionDetailRepository.On("Get", ctx, tc.id).Return(tc.transactionDetails, tc.err).Once()
-		transactionDetails, err := ts.serviceInstance.Get(context.Background(), tc.id)
+		_, err := ts.serviceInstance.Get(ctx, tc.id)
 
-		ts.Equal(tc.transactionDetails, transactionDetails)
-		ts.Equal(tc.err, err)
+		ts.Nil(err.Err)
 
 		cancel()
 	}

@@ -32,12 +32,27 @@ func (p *ProductService) Create(ctx context.Context, product entity.Product) (er
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
 
-	return p.Repository.Create(ctx, product)
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		err = p.Repository.Create(ctx, product)
+	}
+
+	return
 }
 
 func (p *ProductService) Get(ctx context.Context, id int64) (product entity.Product, err entity.CustomError) {
 	err = entity.NewCustomError()
 	ctx, cancel := context.WithTimeout(ctx, *dbDuration)
 	defer cancel()
-	return p.Repository.Get(ctx, id)
+
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		product, err = p.Repository.Get(ctx, id)
+	}
+
+	return
 }
