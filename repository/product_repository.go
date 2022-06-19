@@ -24,7 +24,7 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 }
 
 func (p *ProductRepository) Create(ctx context.Context, product entity.Product) (err entity.CustomError) {
-	query := fmt.Sprintf("INSERT INTO products(brand_id, title, description, price, price_reduction, stock) " +
+	query := fmt.Sprintf("INSERT INTO products(brand_id, title, description, price, price_reduction, stock) "+
 		"VALUES (%v, '%s', '%s', %v, %v, %v)",
 		product.BrandID, product.Title, product.Description, product.Price, product.PriceReduction, product.Stock)
 

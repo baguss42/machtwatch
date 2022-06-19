@@ -28,9 +28,9 @@ func (h *ProductHandler) Product(w http.ResponseWriter, r *http.Request) (int, e
 	response := NewResponse()
 	switch r.Method {
 	case http.MethodPost:
-		return h.Create(w,r)
+		return h.Create(w, r)
 	case http.MethodGet:
-		return h.Get(w,r)
+		return h.Get(w, r)
 	default:
 		return response.ErrorMethodNotAllowed(w)
 	}
@@ -46,6 +46,10 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) (int, er
 	}
 
 	response.CustomError = h.Service.Create(r.Context(), product)
+	if response.CustomError.Err == nil {
+		response.CustomError.HttpCode = http.StatusCreated
+	}
+
 	return response.Write(w)
 }
 

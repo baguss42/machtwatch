@@ -10,7 +10,7 @@ import (
 type HandleWithError func(http.ResponseWriter, *http.Request) (int, error)
 
 var (
-	logger   *zap.Logger
+	logger *zap.Logger
 )
 
 func Load() {

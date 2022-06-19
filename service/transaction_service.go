@@ -13,15 +13,15 @@ type TransactionServiceInterface interface {
 }
 
 type TransactionService struct {
-	TrxRepository repository.TransactionRepositoryInterface
+	TrxRepository       repository.TransactionRepositoryInterface
 	TrxDetailRepository repository.TransactionDetailRepositoryInterface
-	ProductRepository repository.ProductRepositoryInterface
+	ProductRepository   repository.ProductRepositoryInterface
 }
 
 func NewTransactionService(db *sql.DB) *TransactionService {
 	return &TransactionService{
-		TrxRepository: repository.NewTransactionRepository(db),
-		ProductRepository: repository.NewProductRepository(db),
+		TrxRepository:       repository.NewTransactionRepository(db),
+		ProductRepository:   repository.NewProductRepository(db),
 		TrxDetailRepository: repository.NewTransactionDetailRepository(db),
 	}
 }

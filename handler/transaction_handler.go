@@ -28,9 +28,9 @@ func (h *TransactionHandler) Transaction(w http.ResponseWriter, r *http.Request)
 	response := NewResponse()
 	switch r.Method {
 	case http.MethodPost:
-		return h.Create(w,r)
+		return h.Create(w, r)
 	case http.MethodGet:
-		return h.Get(w,r)
+		return h.Get(w, r)
 	default:
 		return response.ErrorMethodNotAllowed(w)
 	}
