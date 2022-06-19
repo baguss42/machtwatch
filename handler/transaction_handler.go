@@ -46,6 +46,9 @@ func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) (int
 	}
 
 	response.CustomError = h.Service.Create(r.Context(), transactionOrder)
+	if response.CustomError.Err == nil {
+		response.CustomError.HttpCode = http.StatusCreated
+	}
 
 	return response.Write(w)
 }
@@ -56,7 +59,7 @@ func (h *TransactionHandler) Get(w http.ResponseWriter, r *http.Request) (int, e
 
 	idParam := r.URL.Query().Get("id")
 	id, response.CustomError.Err = strconv.ParseInt(idParam, 10, 64)
-	if response.CustomError.Err != nil {
+	if response.CustomError.Err != nil || id < 1 {
 		return response.ErrorBadRequest(w, errors.New("id is invalid"))
 	}
 

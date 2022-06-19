@@ -8,10 +8,7 @@ import (
 )
 
 const (
-	errorRecordNotExist = "record not exist"
-	errorUnexpected     = "unexpected error"
-	errorUnauthorized   = "unauthorized error"
-	errorForbidden      = "forbidden error"
+	ErrorRecordNotExist = "record not exist"
 )
 
 var (
@@ -33,7 +30,7 @@ func NewCustomError() CustomError {
 
 func (c *CustomError) ErrorNotFound() {
 	c.HttpCode = http.StatusNotFound
-	c.Err = errors.New(errorRecordNotExist)
+	c.Err = errors.New(ErrorRecordNotExist)
 }
 
 func (c *CustomError) ErrorUnexpected(err error) {

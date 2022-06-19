@@ -20,7 +20,7 @@ func NewPayload(data interface{}, httpCode int) *ResponsePayload {
 	return &ResponsePayload{
 		Data: data,
 		Meta: map[string]int{
-			"meta": httpCode,
+			"status": httpCode,
 		},
 	}
 }

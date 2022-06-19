@@ -71,6 +71,7 @@ func (t *TransactionRepository) Create(ctx context.Context, transactionOrder ent
 			if product.Stock < c.Quantity {
 				errC.ErrorUnprocessableEntity(errors.New("product stock is less than quantity"))
 				errs <- errC
+				return
 			}
 
 			// save to transaction details
@@ -91,7 +92,10 @@ func (t *TransactionRepository) Create(ctx context.Context, transactionOrder ent
 			// update product reduce stock
 			currentStock := product.Stock - c.Quantity
 			errC = t.ProductRepository.UpdateStock(ctx, tcx, product.ID, currentStock)
-			errs <- errC
+			if errC.Err != nil {
+				errs <- errC
+				return
+			}
 
 		}(v, tx)
 	}

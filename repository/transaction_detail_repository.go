@@ -23,19 +23,19 @@ func NewTransactionDetailRepository(db *sql.DB) *TransactionDetailRepository {
 }
 
 func (t *TransactionDetailRepository) Create(ctx context.Context, tx *sql.Tx, trxDetail entity.TransactionDetail) (err entity.CustomError) {
-	query := fmt.Sprintf("INSERT INTO transaction_details(transaction_id, product_id, price, price_reduction, quantity, final_price) VALUES (%v, %v, %v, %v, %v, %v)", trxDetail.TransactionID, trxDetail.ProductID, trxDetail.Price, trxDetail.PriceReduction, trxDetail.Quantity, trxDetail.FinalPrice)
+	query := "INSERT INTO transaction_details(transaction_id, product_id, price, price_reduction, quantity, final_price) VALUES (?, ?, ?, ?, ?, ?)"
 
-	_, err.Err = tx.ExecContext(ctx, query)
+	_, err.Err = tx.ExecContext(ctx, query, trxDetail.TransactionID, trxDetail.ProductID, trxDetail.Price, trxDetail.PriceReduction, trxDetail.Quantity, trxDetail.FinalPrice)
 	err.BuildSQLError("create")
 
 	return err
 }
 
 func (t *TransactionDetailRepository) Get(ctx context.Context, transactionID int64) (result []entity.TransactionDetail, err entity.CustomError) {
-	query := fmt.Sprintf("SELECT * FROM transaction_details WHERE transaction_id = %v", transactionID)
+	query := "SELECT * FROM transaction_details WHERE transaction_id = ?"
 
 	var rows *sql.Rows
-	rows, err.Err = t.DB.QueryContext(ctx, query)
+	rows, err.Err = t.DB.QueryContext(ctx, query, transactionID)
 	defer rows.Close()
 
 	for rows.Next() {
